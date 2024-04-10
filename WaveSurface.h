@@ -10,5 +10,8 @@ class WaveSurface : public WorldObject
 
 	//generate the vertices of the uneven surface
 	std::vector<Vertex> CreateVertices() const override;
+
+	//begin play function
+	void BeginPlay(const std::vector<WorldObject*>& InWorldObjects) override;
 };
 

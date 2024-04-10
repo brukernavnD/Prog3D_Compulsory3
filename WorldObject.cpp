@@ -284,6 +284,41 @@ void WorldObject::InitializeTextures(std::vector<std::string>& InTexturePaths, c
 	glWCheckError();
 }
 
+void WorldObject::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
+{
+	//storage for line trace hit
+	Vertex Hit;
+
+	//loop through all the world objects
+	for (const auto& InWorldObject : InWorldObjects)
+	{
+		//check if it is the wave surface
+		if (InWorldObject->Name == "WaveSurface")
+		{
+			//get the vertices of the object
+			const std::vector<Vertex> WorldVertices = InWorldObject->GetWorldVertices();
+
+			//loop through the vertices in sets of 3 (every triangle of the model)
+			for (int i = 0; i < WorldVertices.size(); i += 3)
+			{
+				//get the vertices of the triangle
+				const Vertex A = WorldVertices[i];
+				const Vertex B = WorldVertices[i + 1];
+				const Vertex C = WorldVertices[i + 2];
+
+				//do a collision check downwards and assign the new position to be the collision point
+				const bool IsBelow = Statics::testRayThruTriangle(A, B, C, Vertex(Position), Vertex(Position + glm::vec3(0, -100000, 0)), Hit);
+
+				if (IsBelow)
+				{
+					//set the new position to be the collision point
+					this->Position = Hit.Position + glm::vec3(0, 0.5 * Size.y, 0);
+				}
+			}
+		}
+	}
+}
+
 void WorldObject::Render(const unsigned int& InShaderProgram, const std::string& ModelKey)
 {
 	//create an identity matrix

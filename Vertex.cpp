@@ -2,15 +2,15 @@
 
 Vertex::Vertex()
 {
-	Position = glm::vec3(0.0f, 0.0f, 0.0f);
-	Normal = glm::vec3(1.0f, 1.0f, 1.0f);
+	Position = glm::vec3(0);
+	Normal = glm::vec3(-1);
 }
 
 Vertex::Vertex(glm::vec3 InPos)
 {
 	Position = InPos;
-	Normal = glm::vec3(1.0f, 1.0f, 1.0f);
-	TextureCoordinates = glm::vec2(0.0f, 0.0f);
+	Normal = glm::vec3(-1);
+	TextureCoordinates = glm::vec2(0);
 }
 
 Vertex::Vertex(const glm::vec3 InPos, const glm::vec3 InNormal, const glm::vec2 InTextureCoordinates)
@@ -23,7 +23,7 @@ Vertex::Vertex(const glm::vec3 InPos, const glm::vec3 InNormal, const glm::vec2 
 Vertex::Vertex(float InX, float InY, float InZ, float InU, float InV)
 {
 	Position = glm::vec3(InX, InY, InZ);
-	Normal = glm::vec3(1.0f, 1.0f, 1.0f);
+	Normal = glm::vec3(-1);
 	TextureCoordinates = glm::vec2(InU, InV);
 }
 

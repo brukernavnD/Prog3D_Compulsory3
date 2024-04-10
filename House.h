@@ -46,6 +46,9 @@ public:
 	//initialize the house
 	void Initialize(std::vector<std::vector<Vertex>>& InVertices, const unsigned& InShaderProgram) override;
 
+	//begin play function
+	void BeginPlay(const std::vector<WorldObject*>& InWorldObjects) override;
+
 	//function to render the house
 	void Render(const unsigned int& InShaderProgram, const std::string& ModelKey) override;
 };

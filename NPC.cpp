@@ -37,6 +37,15 @@ float NPC::MathFunction2(const float Param)
 	return Value;
 }
 
+void NPC::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
+{
+	//call the parent implementation
+	WorldObject::BeginPlay(InWorldObjects);
+
+	//update our original position
+	OriginalPosition = Position;
+}
+
 void NPC::Tick(const float DeltaTime)
 {
 	//check if we've reached the end of the path

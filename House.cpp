@@ -122,6 +122,11 @@ void House::Initialize(std::vector<std::vector<Vertex>>& InVertices, const unsig
 	}
 }
 
+void House::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
+{
+	//do nothing
+}
+
 void House::Render(const unsigned& InShaderProgram, const std::string& ModelKey)
 {
 	WorldObject::Render(InShaderProgram, ModelKey);

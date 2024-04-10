@@ -56,11 +56,14 @@ void PlayerCharacter::ProcessMouseMovement(Camera& InCamera, float xoffset, floa
 	UpdateCameraPosition(InCamera);
 }
 
+void PlayerCharacter::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
+{
+	//do nothing
+}
+
 void PlayerCharacter::MoveAlongSurface(glm::vec3 MoveDirection, float DesiredDistanceLeft, const std::vector<WorldObject*>& InWorldObjects)
 {
 	const std::vector<Vertex>& Verticies = InWorldObjects[0]->GetWorldVertices();
-
-	//bool InTriangle = false;
 
 	//move with no consideration for the surface
 	Position += MoveDirection * DesiredDistanceLeft;
@@ -68,30 +71,26 @@ void PlayerCharacter::MoveAlongSurface(glm::vec3 MoveDirection, float DesiredDis
 	//iterate through all the vertices float data in sets of 18 to get the three vertices of each triangle
 	for (size_t i = 0; i < Verticies.size(); i += 3)
 	{
-		////get the three vertices of the triangle
-		//glm::vec3 A = {Verticies[i], Verticies[i + 1], Verticies[i + 2]};
-		//glm::vec3 B = {Verticies[i + VertexStride], Verticies[i + VertexStride + 1], Verticies[i + VertexStride + 2]};
-		//glm::vec3 C = {Verticies[i + VertexStride * 2], Verticies[i + VertexStride * 2 + 1], Verticies[i + VertexStride * 2 + 2]};
-		glm::vec3 A = Verticies[i].Position;
-		glm::vec3 B = Verticies[i + 1].Position;
-		glm::vec3 C = Verticies[i + 2].Position;
+		Vertex A = Verticies[i];
+		Vertex B = Verticies[i + 1];
+		Vertex C = Verticies[i + 2];
 
 		//vec3 to store the collision point
-		glm::vec3 CollisionPoint;
+		Vertex CollisionPoint;
 
 		//do a collision check downwards and assign the new position to be the collision point
-		const bool IsBelow = testRayThruTriangle(A, B, C, Position, Position + glm::vec3(0,-100000,0), CollisionPoint);
+		const bool IsBelow = Statics::testRayThruTriangle(A, B, C, Vertex(Position), Vertex(Position + glm::vec3(0,-100000,0)), CollisionPoint);
 
 		if (IsBelow)
 		{
 			//set the new position to be the collision point
-			Position = CollisionPoint + glm::vec3(0, 0.5 * Size.y, 0);
+			Position = CollisionPoint.Position + glm::vec3(0, 0.5 * Size.y, 0);
 		}
 		//check if we're below the triangle
-		else if (testRayThruTriangle(A, B, C, Position, Position + glm::vec3(0,100000,0), CollisionPoint))
+		else if (Statics::testRayThruTriangle(A, B, C, Vertex(Position), Vertex(Position + glm::vec3(0,100000,0)), CollisionPoint))
 		{
 			//set the new position to be the collision point
-			Position = CollisionPoint + glm::vec3(0, 0.5 * Size.y, 0);
+			Position = CollisionPoint.Position + glm::vec3(0, 0.5 * Size.y, 0);
 		}
 
 		////check if our current postion is within the triangle (using a point in the triangle for our y value)
@@ -232,58 +231,4 @@ void PlayerCharacter::UpdateCameraPosition(Camera& InCamera) const
 
 	//process 0 mouse movement to update the camera
 	InCamera.ProcessMouseMovement(0, 0);
-}
-
-//PIP = Point In Plane (function taken from https://gamedev.stackexchange.com/questions/5585/line-triangle-intersection-last-bits)
-bool PlayerCharacter::testRayThruTriangle( glm::vec3 P1, glm::vec3 P2, glm::vec3 P3, glm::vec3 R1, glm::vec3 R2, glm::vec3& PIP)
-{  
-    glm::vec3 Normal, IntersectPos;
-
-    // Find Triangle Normal
-    Normal = glm::normalize(glm::cross(P2 - P1, P3 - P1));
-
-    // Find distance from LP1 and LP2 to the plane defined by the triangle
-    float Dist1 = glm::dot(R1-P1, Normal);
-    float Dist2 = glm::dot(R2-P1, Normal);
-
-    if (Dist1 * Dist2 >= 0.0f)
-    {
-        return false; 
-    } // line doesn't cross the triangle.
-
-    if ( Dist1 == Dist2)
-    {
-        return false; 
-    } // line and plane are parallel
-
-    // Find point on the line that intersects with the plane
-    IntersectPos = R1 + (R2-R1) * (-Dist1/(Dist2-Dist1));
-
-    // Find if the interesection point lies inside the triangle by testing it against all edges
-    glm::vec3 vTest;
-
-    vTest = glm::cross(Normal, P2-P1);
-    if (glm::dot(vTest, IntersectPos-P1) < 0.0f)
-    { 
-        //SFLog(@"no intersect P2-P1"); 
-        return false; 
-    }
-
-    vTest = glm::cross(Normal, P3-P2);
-    if (glm::dot(vTest, IntersectPos-P2) < 0.0f)
-    { 
-        //SFLog(@"no intersect P3-P2"); 
-        return false; 
-    }
-
-    vTest = glm::cross(Normal, P1-P3);
-    if (glm::dot(vTest, IntersectPos-P1) < 0.0f)
-    { 
-        //SFLog(@"no intersect P1-P3"); 
-        return false; 
-    }
-
-    PIP = IntersectPos;
-
-    return true;
 }

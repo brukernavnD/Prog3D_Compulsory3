@@ -75,6 +75,9 @@ public:
 	//function to initialize the textures of the object
 	virtual void InitializeTextures(std::vector<std::string>& InTexturePaths, const unsigned int& InShaderProgram);
 
+	//function called right befor beginning play
+	virtual void BeginPlay(const std::vector<WorldObject*>& InWorldObjects);
+
 	//function to render the object
 	virtual void Render(const unsigned int& InShaderProgram, const std::string& ModelKey);
 

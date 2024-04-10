@@ -22,6 +22,9 @@ class PlayerCharacter : public WorldObject
 	//function to process mouse movement for the camera (third person)
 	void ProcessMouseMovement(Camera& InCamera, float xoffset, float yoffset, GLboolean constrainPitch = true) const;
 
+	//begin play function
+	void BeginPlay(const std::vector<WorldObject*>& InWorldObjects) override;
+
 private:
 
 	//function to move the player character using barysentric coordinates
@@ -29,6 +32,4 @@ private:
 
 	//function to update the player character's camera's position
 	void UpdateCameraPosition(Camera& InCamera) const;
-
-	static bool testRayThruTriangle( glm::vec3 P1, glm::vec3 P2, glm::vec3 P3, glm::vec3 R1, glm::vec3 R2, glm::vec3& PIP);
 };

@@ -183,6 +183,12 @@ int main()
     const std::string name2 = "view";
     const std::string name3 = "model";
 
+    //call prebegin play for all world objects
+    for (WorldObject* Object : WorldObjects)
+    {
+	    Object->BeginPlay(WorldObjects);
+	}
+
     // render loop
     while (!glfwWindowShouldClose(Window))
     {

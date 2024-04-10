@@ -47,6 +47,9 @@ public:
 	//the math function we use to move the npc
 	static float MathFunction2(float Param);
 
+	//begin play function
+	void BeginPlay(const std::vector<WorldObject*>& InWorldObjects) override;
+
 	//function to update the npc
 	void Tick(float DeltaTime) override;
 

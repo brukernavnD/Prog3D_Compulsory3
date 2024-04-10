@@ -44,3 +44,8 @@ std::vector<Vertex> WaveSurface::CreateVertices() const
 	//return the vertices
 	return Vertices;
 }
+
+void WaveSurface::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
+{
+	//do nothing
+}

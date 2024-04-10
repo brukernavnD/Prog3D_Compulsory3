@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "Vertex.h"
+#include "glm/detail/func_geometric.inl"
 
 namespace Statics
 {
@@ -89,6 +90,56 @@ namespace Statics
 	};
 
 	return Vertices;
+	}
+
+	//code to test if a ray intersects with a triangle (from https://gamedev.stackexchange.com/questions/5585/line-triangle-intersection-last-bits) (modified)
+	static bool testRayThruTriangle(Vertex P1, Vertex P2, Vertex P3, Vertex R1, Vertex R2, Vertex& PIP)
+	{
+		glm::vec3 Normal, IntersectPos;
+
+		// Find Triangle Normal
+		Normal = normalize(cross(P2.Position - P1.Position, P3.Position - P1.Position));
+
+		// Find distance from LP1 and LP2 to the plane defined by the triangle
+		float Dist1 = dot(R1.Position-P1.Position, Normal);
+		float Dist2 = dot(R2.Position-P1.Position, Normal);
+
+		if (Dist1 * Dist2 >= 0.0f)
+		{
+			return false;
+		} // line doesn't cross the triangle.
+
+		if ( Dist1 == Dist2)
+		{
+			return false;
+		} // line and plane are parallel
+
+		// Find point on the line that intersects with the plane
+		IntersectPos = R1.Position + (R2.Position-R1.Position) * (-Dist1/(Dist2-Dist1));
+
+		// Find if the interesection point lies inside the triangle by testing it against all edges
+		glm::vec3 vTest;
+
+		vTest = cross(Normal, P2.Position-P1.Position);
+		if (dot(vTest, IntersectPos-P1.Position) < 0.0f)
+		{
+			return false;
+		}
+
+		vTest = cross(Normal, P3.Position-P2.Position);
+		if (dot(vTest, IntersectPos-P2.Position) < 0.0f)
+		{
+			return false;
+		}
+
+		vTest = cross(Normal, P1.Position-P3.Position);
+		if (dot(vTest, IntersectPos-P1.Position) < 0.0f)
+		{
+			return false;
+		}
+
+		PIP = Vertex(IntersectPos, Normal, glm::vec2(0, 0));
+		return true;
 	}
 }
 

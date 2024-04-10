@@ -1,0 +1,31 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec3 colour;
+in vec2 TexCoord;
+
+uniform sampler2D ourTexture;
+
+void main()
+{
+
+	//check if the colour value is not the value for textures
+	if(colour != vec3(-1, -1, -1))
+	{
+		FragColor = vec4(colour, 1.0);
+	}
+	else
+	{
+		//use the texture value
+		vec4 texColor = texture(ourTexture, TexCoord);
+
+		//check if the pixel is transparent
+		if(texColor.a < 0.1)
+		{
+			//prevent drawing transparent pixels as black
+			discard;
+		}
+
+		FragColor = texture(ourTexture, TexCoord);
+	}
+}

@@ -26,24 +26,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow* window, double XPos, double YPos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-////camera (from https://learnopengl.com/Getting-started/Camera)
-//Camera camera(glm::vec3(0, 1, 3));
-//
-////create the player controller
-//PlayerController_ OurPlayerController;
-//
-////array to store all world objects (houses, npcs, pickups, player character, etc.)
-//std::vector<WorldObject*> WorldObjects;
-//
-//int CurrentValidID = 0;
-//std::vector<std::string> ObjectNames;
-//
-////vector to store the vertices (with the first element being an array of unorganized vertices to store objects that don't need to be organized)
-//std::vector<std::vector<Vertex>> OrganizedVertices = {};
-//
-////vector to store the vertices of our models without any organisation (to make it easier to work with opengl)
-//std::vector<Vertex> AllVertices = {};
-
 //the game world
 World GameWorld;
 

@@ -22,6 +22,9 @@ public:
 	//pointer to the current terrain object
 	WorldObject* Terrain = nullptr;
 
+	//whether or not to render the terrain
+	bool bRenderTerrain = true;
+
 	//the player controller
 	PlayerController_* PlayerController = nullptr;
 

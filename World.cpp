@@ -70,6 +70,12 @@ void World::RenderWorld() const
 	//iterate through all world objects
 	for (WorldObject* Object : WorldObjects)
 	{
+		//skip rendering the terrain if the flag is set
+		if (Object == Terrain && !bRenderTerrain)
+		{
+			continue;
+		}
+
 		//render the object
 		Object->Render();
 	}

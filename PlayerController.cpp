@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 #include "Macros.h"
+#include "NPC.h"
 #include "PlayerCharacter.h"
 
 PlayerInput_::PlayerInput_() = default;
@@ -121,6 +122,56 @@ void PlayerController_::ProcessKeyboardInput(GLFWwindow* Window, int Key, int Sc
 	{
 		//toggle the third person camera
 		PlayerCharacter->UseThirdPerson = !PlayerCharacter->UseThirdPerson;
+	}
+
+	//check if the 3 key was just released
+	if (PlayerInput.WasReleased(GLFW_KEY_3))
+	{
+		//toggle whether or not to draw the terrain
+		GetWorld()->bRenderTerrain = !GetWorld()->bRenderTerrain;
+	}
+
+	//check if the 4 key is currently pressed
+	if (PlayerInput.IsPressed(GLFW_KEY_4))
+	{
+		//iterate through the world objects
+		for (WorldObject* Object : GetWorld()->WorldObjects)
+		{
+			//check if the object is the npc
+			if (Object->Name == "NPC")
+			{
+				//cast the object to an npc
+				NPC_* Npc = dynamic_cast<NPC_*>(Object);
+
+				//increase the speed of the npc
+				Npc->Speed += 0.5f;
+			}
+		}
+	}
+
+	//check if the 5 key is currently pressed
+	if (PlayerInput.IsPressed(GLFW_KEY_5))
+	{
+		//iterate through the world objects
+		for (WorldObject* Object : GetWorld()->WorldObjects)
+		{
+			//check if the object is the npc
+			if (Object->Name == "NPC")
+			{
+				//cast the object to an npc
+				NPC_* Npc = dynamic_cast<NPC_*>(Object);
+
+				//decrease the speed of the npc
+				Npc->Speed -= 0.5f;
+
+				//check if the speed is less than 1
+				if (Npc->Speed < 1.f)
+				{
+					//set the speed to 1
+					Npc->Speed = 1.0f;
+				}
+			}
+		}
 	}
 }
 

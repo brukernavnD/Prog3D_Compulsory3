@@ -136,8 +136,8 @@ int main()
     //initialize the world
 	GetWorld()->InitializeWorld();
 
-    //print the total number of verticies
-    std::cout << "Number Of Vertices: " << GetWorld()->GetNumVertices() << std::endl;
+    ////print the total number of verticies
+    //std::cout << "Number Of Vertices: " << GetWorld()->GetNumVertices() << std::endl;
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);

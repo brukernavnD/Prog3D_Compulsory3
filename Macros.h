@@ -252,7 +252,7 @@ static bool testRayThruTriangle(Vertex P1, Vertex P2, Vertex P3, Vertex R1, Vert
 	return true;
 }
 
-//bernstein function
+//bernstein function (from https://stackoverflow.com/questions/17556985/bezier-curve-using-c-opengl) (modified)
 static float Bernstein(const int n, const int i, const float t)
 {
 	//get the binomial coefficient

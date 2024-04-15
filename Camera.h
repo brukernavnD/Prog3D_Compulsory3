@@ -3,13 +3,12 @@
 #include <glm/vec3.hpp>
 #include <glm/detail/func_geometric.inl>
 
-#include "glad/glad.h"
 #include "glm/ext/matrix_transform.hpp"
 
-//all code from https://learnopengl.com/Getting-started/Camera
+//original code from https://learnopengl.com/Getting-started/Camera but has been modified to work with the rest of the project and handle third person camera
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement {
+enum EWasd_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
@@ -38,7 +37,6 @@ public:
     float Yaw;
     float Pitch;
     // camera options
-    float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
 
@@ -52,11 +50,14 @@ public:
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix() const;
 
-    // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime);
+    //function to process mouse input so it can be used for first or third person camera
+    void ProcessMouseInput(float XPos, float YPos, bool UseThirdPerson, float CameraDistance = 0, bool constrainPitch = true);
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+    void ProcessMouseInputFirstPerson(float xoffset, float yoffset, bool constrainPitch = true);
+
+    //process mouse movement for third person camera
+    void ProcessMouseMovementThirdPerson(float xoffset, float yoffset, float CameraDistance, bool constrainPitch = true);
 
     // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset);

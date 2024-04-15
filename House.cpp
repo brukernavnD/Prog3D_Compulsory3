@@ -1,24 +1,17 @@
 #include "House.h"
 
 #include "GameplayStatics.h"
-#include "glad/glad.h"
+#include "Macros.h"
 
-House::House(glm::vec3 InPos, glm::vec3 InSize)
+House_::House_(const glm::vec3 InPos, const glm::vec3 InSize) : WorldObject(InPos, InSize, CREATE_NAME)
 {
-	//set the position
-	Position = InPos;
-
-	//set the size
-	Size = InSize;
-
-	//set the name
-	Name = "House";
+	
 }
 
-std::vector<Vertex> House::CreateVertices() const
+std::vector<Vertex> House_::CreateVertices() const
 {
-	//create the vertices
-	return {
+	//create the vertices for the house
+	std::vector<Vertex> LocVerticies = {
 		//back wall (first triangle)
 		Vertex(-FrontBackWallWidth / 2, 0, - SideWallWidth / 2.0f, WallColour.r, WallColour.g, WallColour.b, 0.0f, 0.0f),
 		Vertex(FrontBackWallWidth / 2, 0, - SideWallWidth / 2.0f, WallColour.r, WallColour.g, WallColour.b, 1.0f, 0.0f),
@@ -109,35 +102,10 @@ std::vector<Vertex> House::CreateVertices() const
 	    Vertex(-0, WallHeight + (FrontBackWallWidth / 2) * tan(glm::radians(RoofAngle)), 0, RoofColour.r, RoofColour.g, RoofColour.b, 0.5f, 1.0f),
 	    Vertex(-0, WallHeight + (FrontBackWallWidth / 2) * tan(glm::radians(RoofAngle)), 0, RoofColour.r, RoofColour.g, RoofColour.b, 0.5f, 1.0f),
 	};
-}
 
-void House::Initialize(std::vector<std::vector<Vertex>>& InVertices, const unsigned& InShaderProgram)
-{
-	WorldObject::Initialize(InVertices, InShaderProgram);
+	//add the door vertices
+	LocVerticies.insert(LocVerticies.end(), DoorVertices.begin(), DoorVertices.end());
 
-	//check if our vertices are empty
-	if (!MyVertices.empty())
-	{
-		InVertices.emplace_back(DoorVertices);
-	}
-}
-
-void House::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
-{
-	//do nothing
-}
-
-void House::Render(const unsigned& InShaderProgram, const std::string& ModelKey)
-{
-	WorldObject::Render(InShaderProgram, ModelKey);
-
-	//draw the door vertices
-    if (CheckDoorCollision)
-    {
-		//set the model matrix
-		glUniformMatrix4fv(glGetUniformLocation(InShaderProgram, ModelKey.c_str()), 1, GL_FALSE, &ModelMatrix[0][0]);
-
-		//draw the door vertices
-        glDrawArrays(GL_TRIANGLES, VertexIndex + MyVertices.size(), DoorVertices.size());
-	}
+	//return the vertices
+	return LocVerticies;
 }

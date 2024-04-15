@@ -1,15 +1,10 @@
 #include "WaveSurface.h"
 
-WaveSurface::WaveSurface(const glm::vec3 InPos, const glm::vec3 InSize)
+#include "Macros.h"
+
+WaveSurface::WaveSurface(const glm::vec3 InPos, const glm::vec3 InSize, const int InLOD, const float InWaviness) : Terrain_(InPos, InSize, CREATE_NAME), LOD(InLOD), Waviness(InWaviness)
 {
-	//set the position
-	Position = InPos;
 
-	//set the size
-	Size = InSize;
-
-	//set the name
-	Name = "WaveSurface";
 }
 
 std::vector<Vertex> WaveSurface::CreateVertices() const
@@ -17,35 +12,66 @@ std::vector<Vertex> WaveSurface::CreateVertices() const
 	//create the vertices
 	std::vector<Vertex> Vertices;
 
-	//loop through the length of the floor via the z axis
-    for (int X = 0; X < Size.x; X++)
-    {
-        //get our x position
-        const float XPos = float(X) - float(Size.x) / 2 + Position.x;
+	//the colour of the bezier curve
+	constexpr glm::vec3 Colour = glm::vec3(1, 0, 0);
 
-	    //loop through the width of the floor via the x axis
-		for (int Z = 0; Z < Size.z; Z++)
-		{
-            //get our z position
-            const float ZPos = float(Z) - float(Size.z) / 2 + Position.z;
+	//constant z value 1
+	const float ZValue1 = 0;
 
-			//create the first triangle
-			Vertices.emplace_back(float(XPos), Size.y * sin(float(XPos)), float(ZPos), 1.0, 0.0, 0.0, 0.0, 0.0);
-			Vertices.emplace_back(float(XPos) + 1, Size.y * sin(float(XPos) + 1), float(ZPos), 1.0, 0.0, 0.0, 0.0, 0.0);
-			Vertices.emplace_back(float(XPos), Size.y * sin(float(XPos)), float(ZPos) + 1, 1.0, 0.0, 0.0, 0.0, 0.0);
+	//constant z value 2
+	const float ZValue2 = 1;
 
-			//create the second triangle
-			Vertices.emplace_back(float(XPos) + 1, Size.y * sin(float(XPos) + 1), float(ZPos), 1.0, 0.0, 0.0, 0.0, 0.0);
-			Vertices.emplace_back(float(XPos), Size.y * sin(float(XPos)), float(ZPos) + 1, 1.0, 0.0, 0.0, 0.0, 0.0);
-			Vertices.emplace_back(float(XPos) + 1, Size.y * sin(float(XPos) + 1), float(ZPos) + 1, 1.0, 0.0, 0.0, 0.0, 0.0);
-		}
+	//loop through the x axis
+	for (int x = 0; x < LOD; x += 1)
+	{
+		//get the x position
+		const float XPos = float(x) / float(LOD);
+
+		//get the y position
+		const float YPos = sin(XPos * Waviness);
+
+		//get the next x position
+		const float NextXPos = float(x + 1) / float(LOD);
+
+		//get the nexy y position
+		const float NextYPos = sin(NextXPos * Waviness);
+
+		////amount of z values for every x value
+		//constexpr int ZValues = 2;
+		//
+		////loop through the z axis
+		//for (int z = 0; z < ZValues; z++)
+		//{
+		//	//set the z values
+		//	const float ZValue1 = float(z) / float(ZValues);
+		//	const float ZValue2 = float(z + 1) / float(ZValues);
+
+			//create our triangles
+			Vertices.insert(Vertices.end(), 
+			{
+				//create the first triangle
+				Vertex(glm::vec3(XPos, YPos, ZValue1), Colour),
+				Vertex(glm::vec3(NextXPos, NextYPos, ZValue1), Colour),
+				Vertex(glm::vec3(XPos, YPos, ZValue2), Colour),
+
+				//create the second triangle
+				Vertex(glm::vec3(NextXPos, NextYPos, ZValue1), Colour),
+				Vertex(glm::vec3(XPos, YPos, ZValue2), Colour),
+				Vertex(glm::vec3(NextXPos, NextYPos, ZValue2), Colour)
+			});
+
+			//////create the first triangle
+			//Vertices.emplace_back(glm::vec3(XPos, YPos, ZValue1), Colour);
+			//Vertices.emplace_back(glm::vec3(NextXPos, NextYPos, ZValue1), Colour);
+			//Vertices.emplace_back(glm::vec3(XPos, YPos, ZValue2), Colour);
+
+			//////create the second triangle
+			//Vertices.emplace_back(glm::vec3(NextXPos, NextYPos, ZValue1), Colour);
+			//Vertices.emplace_back(glm::vec3(XPos, YPos, ZValue2), Colour);
+			//Vertices.emplace_back(glm::vec3(NextXPos, NextYPos, ZValue2), Colour);
+		//}
 	}
 
 	//return the vertices
 	return Vertices;
-}
-
-void WaveSurface::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
-{
-	//do nothing
 }

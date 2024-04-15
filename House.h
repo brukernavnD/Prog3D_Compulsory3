@@ -1,7 +1,7 @@
 #pragma once
 #include "WorldObject.h"
 
-class House : public WorldObject
+class House_ : public WorldObject
 {
 public:
 
@@ -38,18 +38,9 @@ public:
 	};
 
 	//constructor(s)
-	House(glm::vec3 InPos, glm::vec3 InSize);
+	House_(glm::vec3 InPos, glm::vec3 InSize);
 
 	//create the vertices of the house
 	std::vector<Vertex> CreateVertices() const override;
-
-	//initialize the house
-	void Initialize(std::vector<std::vector<Vertex>>& InVertices, const unsigned& InShaderProgram) override;
-
-	//begin play function
-	void BeginPlay(const std::vector<WorldObject*>& InWorldObjects) override;
-
-	//function to render the house
-	void Render(const unsigned int& InShaderProgram, const std::string& ModelKey) override;
 };
 

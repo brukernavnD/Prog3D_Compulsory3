@@ -1,21 +1,20 @@
 #pragma once
 #include <string>
-#include <vector>
-
-#include "Vertex.h"
 #include "WorldObject.h"
-#include "glm/vec3.hpp"
 
-class Pickup : public WorldObject
+class Pickup_ : public WorldObject
 {
 public:
 	//constructor(s)
-	Pickup(glm::vec3 InPos, glm::vec3 InSize, std::string InTexturePath);
+	Pickup_(glm::vec3 InPos);
 	
 	//whether or not the pickup is active
 	bool IsActive = true;
 
+	//function called when beginning play
+	void BeginPlay() override;
+
 	//function to render the pickup
-	void Render(const unsigned int& InShaderProgram, const std::string& ModelKey) override;
+	void Render() override;
 };
 

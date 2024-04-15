@@ -17,6 +17,7 @@ struct Vertex
 	//constructor(s)
 	Vertex();
 	explicit Vertex(glm::vec3 InPos);
+	Vertex(glm::vec3 Vec, glm::vec3 Vec3);
 	Vertex(glm::vec3 InPos, glm::vec3 InNormal, glm::vec2 InTextureCoordinates);
 	Vertex(float InX, float InY, float InZ, float InU, float InV);
 	Vertex(float InX, float InY, float InZ, float InR, float InG, float InB, float InU, float InV);

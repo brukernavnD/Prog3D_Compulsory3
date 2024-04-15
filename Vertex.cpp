@@ -1,15 +1,24 @@
 #include "Vertex.h"
 
+#include "GameplayStatics.h"
+
 Vertex::Vertex()
 {
 	Position = glm::vec3(0);
 	Normal = glm::vec3(-1);
 }
 
-Vertex::Vertex(glm::vec3 InPos)
+Vertex::Vertex(const glm::vec3 InPos)
 {
 	Position = InPos;
-	Normal = glm::vec3(-1);
+	Normal = WhiteColour;
+	TextureCoordinates = glm::vec2(0);
+}
+
+Vertex::Vertex(const glm::vec3 Vec, const glm::vec3 Vec3)
+{
+	Position = Vec;
+	Normal = Vec3;
 	TextureCoordinates = glm::vec2(0);
 }
 
@@ -20,7 +29,7 @@ Vertex::Vertex(const glm::vec3 InPos, const glm::vec3 InNormal, const glm::vec2 
 	TextureCoordinates = InTextureCoordinates;
 }
 
-Vertex::Vertex(float InX, float InY, float InZ, float InU, float InV)
+Vertex::Vertex(const float InX, const float InY, const float InZ, const float InU, const float InV)
 {
 	Position = glm::vec3(InX, InY, InZ);
 	Normal = glm::vec3(-1);

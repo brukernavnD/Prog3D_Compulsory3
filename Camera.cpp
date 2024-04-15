@@ -1,12 +1,14 @@
 #include "Camera.h"
 
 #include "GameplayStatics.h"
+#include "Macros.h"
+#include "PlayerCharacter.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch): Position(position), Front(glm::vec3(0.0f, 0.0f, -1.0f)), WorldUp(up), Yaw(yaw), Pitch(pitch), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch): Position(position), Front(glm::vec3(0.0f, 0.0f, -1.0f)), WorldUp(up), Yaw(yaw), Pitch(pitch), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 {
 	// mouse movement (from https://learnopengl.com/Getting-started/Camera)
-	LastX = Statics::WindowWidth / 2.0f;
-	LastY = Statics::WindowHeight / 2.0f;
+	LastX = WindowWidth / 2.0f;
+	LastY = WindowHeight / 2.0f;
 	IsFirstMouse = true;
 
 	updateCameraVectors();
@@ -17,28 +19,36 @@ glm::mat4 Camera::GetViewMatrix() const
 	return lookAt(Position, Position + Front, Up);
 }
 
-void Camera::ProcessKeyboard(const Camera_Movement direction, const float deltaTime)
+void Camera::ProcessMouseInput(const float XPos, const float YPos, const bool UseThirdPerson, const float CameraDistance, const bool constrainPitch)
 {
-	const float Velocity = MovementSpeed * deltaTime;
-	if (direction == FORWARD)
+	if (IsFirstMouse)
 	{
-		Position += Front * Velocity;
+		LastX = XPos;
+		LastY = YPos;
+		IsFirstMouse = false;
 	}
-	if (direction == BACKWARD)
+
+	const double Xoffset = XPos - LastX;
+	const double Yoffset = LastY - YPos; // reversed since y-coordinates go from bottom to top
+
+	LastX = XPos;
+	LastY = YPos;
+
+	//check if we are using the third person camera
+	if (UseThirdPerson)
 	{
-		Position -= Front * Velocity;
+		//process the mouse movement
+		ProcessMouseMovementThirdPerson(Xoffset, Yoffset, CameraDistance, constrainPitch);
 	}
-	if (direction == LEFT)
+	//we are using the first person camera
+	else
 	{
-		Position -= Right * Velocity;
-	}
-	if (direction == RIGHT)
-	{
-		Position += Right * Velocity;
+		//process the mouse movement for the first person camera
+		ProcessMouseInputFirstPerson(Xoffset, Yoffset, constrainPitch);
 	}
 }
 
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, const GLboolean constrainPitch)
+void Camera::ProcessMouseInputFirstPerson(float xoffset, float yoffset, const bool constrainPitch)
 {
 	xoffset *= MouseSensitivity;
 	yoffset *= MouseSensitivity;
@@ -59,9 +69,39 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, const GLboolean 
 	updateCameraVectors();
 }
 
+void Camera::ProcessMouseMovementThirdPerson(float xoffset, float yoffset, const float CameraDistance, const bool constrainPitch)
+{
+	xoffset *= MouseSensitivity;
+	yoffset *= MouseSensitivity;
+
+	Yaw   += xoffset;
+	Pitch += yoffset;
+
+	// make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (constrainPitch)
+	{
+		if (Pitch > 89.0f)
+			Pitch = 89.0f;
+		if (Pitch < -89.0f)
+			Pitch = -89.0f;
+	}
+
+	// update Front, Right and Up Vectors using the updated Euler angles
+	updateCameraVectors();
+
+	//get the forward vector of the camera multiplied by the camera distance
+	const glm::vec3 Forward = Front * CameraDistance;
+
+	//set the camera's position to the player character's position minus the forward vector multiplied by the camera distance
+	Position = GetWorld()->GetPlayerCharacter()->Position - Forward;
+
+	// update Front, Right and Up Vectors using the updated Euler angles
+	updateCameraVectors();
+}
+
 void Camera::ProcessMouseScroll(const float yoffset)
 {
-	Zoom -= (float)yoffset;
+	Zoom -= static_cast<float>(yoffset);
 	if (Zoom < 1.0f)
 		Zoom = 1.0f;
 	if (Zoom > 45.0f)

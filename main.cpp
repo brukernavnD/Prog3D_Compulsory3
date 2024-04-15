@@ -1,14 +1,7 @@
-#pragma once
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <vector>
 
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/gtx/rotate_vector.inl"
-#include "glm/gtx/string_cast.hpp"
-
+#include "World.h"
 #include "Camera.h"
 #include "House.h"
 #include "NPC.h"
@@ -17,68 +10,65 @@
 #include "Shaders.h"
 #include "GameplayStatics.h"
 #include "Skybox.h"
+#include "WaveSurface.h"
+#include "BezierCurve.h"
+#include "PlayerController.h"
+#include "Macros.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "Debugging.h"
 #include "stb_image.h"
-#include "WaveSurface.h"
+#include "glm/ext/matrix_clip_space.hpp"
+
 
 // callback functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window, float InDeltaTime);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+void mouse_callback(GLFWwindow* window, double XPos, double YPos);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-// camera (from https://learnopengl.com/Getting-started/Camera)
-Camera camera(glm::vec3(0, 1, 3));
+////camera (from https://learnopengl.com/Getting-started/Camera)
+//Camera camera(glm::vec3(0, 1, 3));
+//
+////create the player controller
+//PlayerController_ OurPlayerController;
+//
+////array to store all world objects (houses, npcs, pickups, player character, etc.)
+//std::vector<WorldObject*> WorldObjects;
+//
+//int CurrentValidID = 0;
+//std::vector<std::string> ObjectNames;
+//
+////vector to store the vertices (with the first element being an array of unorganized vertices to store objects that don't need to be organized)
+//std::vector<std::vector<Vertex>> OrganizedVertices = {};
+//
+////vector to store the vertices of our models without any organisation (to make it easier to work with opengl)
+//std::vector<Vertex> AllVertices = {};
 
-
-//create the player character (position right behind the door)
-PlayerCharacter Player = PlayerCharacter(glm::vec3(0,0.5,0), glm::vec3(0.5), "Textures/PlayerCharacter/PlayerCharacter.png");
-
-//array to store all world objects (houses, npcs, pickups, player character, etc.)
-std::vector<WorldObject*> WorldObjects;
-
-//setup function
-void GLFWSetup()
-{
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
+//the game world
+World GameWorld;
 
 //function to create a glfw window
 GLFWwindow* CreateWindow()
 {
+    glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     //create the window
-	GLFWwindow* Window = glfwCreateWindow(Statics::WindowWidth, Statics::WindowHeight, "Compulsory 3", nullptr, nullptr);
+	GLFWwindow* Window = glfwCreateWindow(WindowWidth, WindowHeight, "Compulsory 3", nullptr, nullptr);
 
     //set the window to the current context
 	glfwMakeContextCurrent(Window);
 
-    //set the on resize callback
+    //set callback functions
 	glfwSetFramebufferSizeCallback(Window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(Window, mouse_callback);
+    glfwSetKeyCallback(Window, key_callback);
+	glfwSetCursorPosCallback(Window, mouse_callback);
     glfwSetScrollCallback(Window, scroll_callback);
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    return Window;
-}
-
-int main()
-{
-	// timing (from https://learnopengl.com/Getting-started/Camera)
-	// time between current frame and last frame
-	double lastFrame = 0;
-
-    //setup glfw
-    GLFWSetup();
-
-    //glfw window creation
-    GLFWwindow* Window = CreateWindow();
 
     //glad: load all OpenGL function pointers
 	gladLoadGLLoader(GLADloadproc(glfwGetProcAddress));
@@ -86,61 +76,68 @@ int main()
     //create the shader program
     const unsigned int ShaderProgram = Shaders::CreateShader();
 
-    //array to store the vertices of our models without any organisation (to make it easier to work with opengl)
-	std::vector<Vertex> Vertices = {};
+    //use the shader program
+    glUseProgram(ShaderProgram);
+
+    return Window;
+}
+
+//the window our game will be displayed in
+GLFWwindow* GameWindow = CreateWindow();
+
+int main()
+{
+
+	// timing (from https://learnopengl.com/Getting-started/Camera)
+	// time between current frame and last frame
+	double lastFrame = 0;
+
+    //create the player character
+	PlayerCharacter_ PlayerCharacter = PlayerCharacter_(glm::vec3(0,0.5,0));
+
+	//set the game worlds player controllers player character
+    GameWorld.PlayerCharacter = &PlayerCharacter;
 
     //create the wave surface
-    WaveSurface Surface = WaveSurface(glm::vec3(0), glm::vec3(5, 2, 5));
-    glCheckError();
+    WaveSurface Surface = WaveSurface(glm::vec3(-12, 0, -12), glm::vec3(25, 1, 25), 500, 60);
 
 	//create the house
-	House House1 = House(glm::vec3(0, -2, -10), glm::vec3(2));
-    glCheckError();
+	House_ House1 = House_(glm::vec3(0, -2, -10), glm::vec3(2));
+
+    //create the control points for the bezier curve
+    std::vector<Vertex> ControlPoints = std::vector<Vertex>{
+        Vertex(glm::vec3(-10, 0, -10)),
+        Vertex(glm::vec3(-10, 0, 10)),
+        Vertex(glm::vec3(10, 0, 10)),
+        Vertex(glm::vec3(10, 0, -10))
+    };
+
+    //create the bezier curve
+    BezierCurve Curve = BezierCurve(ControlPoints, glm::vec3(0, 5, 0), glm::vec3(1));
 
 	//create the npc
-	NPC Npc = NPC(glm::vec3(-8, 0.5, 0), glm::vec3(1),"Textures/NPC.png");
-    glCheckError();
+	NPC_ Npc = NPC_(glm::vec3(-8, 0.5, 0), glm::vec3(1), &Curve);
 
-	//creating the 9 pickups
-	Pickup Pickup1 = Pickup(glm::vec3(0, 0, -10), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup2 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(2 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 2 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup3 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(-2 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 2 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup4 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 0 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup5 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(-1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 0 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup6 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 1 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup7 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(-1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, -1 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup8 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, -1 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-	Pickup Pickup9 = Pickup(glm::vec3(0, 0, -10) + glm::vec3(-1 * Statics::PickupsScale.x, 0.5 * Statics::PickupsScale.y, 1 * Statics::PickupsScale.z), glm::vec3(1), "Textures/Pickup.png");
-    glCheckError();
+	//creating the 10 pickups
+	Pickup_ Pickup1 = Pickup_(glm::vec3(1.1, 0, -10));
+	Pickup_ Pickup2 = Pickup_(glm::vec3(2.2, 0, -10));
+	Pickup_ Pickup3 = Pickup_(glm::vec3(3.3, 0, -10));
+	Pickup_ Pickup4 = Pickup_(glm::vec3(4.4, 0, -10));
+	Pickup_ Pickup5 = Pickup_(glm::vec3(5.5, 0, -10));
+	Pickup_ Pickup6 = Pickup_(glm::vec3(6.6, 0, -10));
+	Pickup_ Pickup7 = Pickup_(glm::vec3(7.7, 0, -10));
+	Pickup_ Pickup8 = Pickup_(glm::vec3(8.8, 0, -10));
+    Pickup_ Pickup9 = Pickup_(glm::vec3(9.9, 0, -10));
+    Pickup_ Pickup10 = Pickup_(glm::vec3(10, 0, -10));
 
 	//create the skybox
-	Skybox Sky = Skybox({
-	    "Textures/Skybox/Front.png",
-		"Textures/Skybox/Back.png",
-		"Textures/Skybox/Left.png",
-		"Textures/Skybox/Right.png",
-		"Textures/Skybox/Top.png",
-		"Textures/Skybox/Bottom.png"
-	});
-    glCheckError();
+	Skybox Sky = Skybox();
 
-    //set the world objects array
-    WorldObjects = {&Surface, &House1, &Npc, &Pickup1, &Pickup2, &Pickup3, &Pickup4, &Pickup5, &Pickup6, &Pickup7, &Pickup8, &Pickup9, &Sky, &Player};
+    //initialize the world
+	GetWorld()->InitializeWorld();
 
-	//vector to store the vertices (with the first element being an array of unorganized vertices to store objects that don't need to be organized)
-	std::vector<std::vector<Vertex>> OrganizedVertices = {std::vector<Vertex>()};
-
-	//initialize all the world objects
-    for (WorldObject* Object : WorldObjects)
-    {
-    	Object->Initialize(OrganizedVertices, ShaderProgram);
-    }
-
-    //add all of the vertices to the vertices array
-    for (std::vector<Vertex> OrganizedVertex : OrganizedVertices)
-    {
-	    Vertices.insert(Vertices.end(), OrganizedVertex.begin(), OrganizedVertex.end());
-    }
+    //print the total number of verticies
+    std::cout << "Number Of Vertices: " << GetWorld()->GetNumVertices() << std::endl;
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -152,19 +149,19 @@ int main()
     glBindVertexArray(VAO);
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertex), Vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, GetWorld()->GetNumVertices() * sizeof(Vertex), GetWorld()->GetWorldVertices().data(), GL_STATIC_DRAW);
 
     // position attribute
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Position)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
 
     // normal attribute
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(offsetof(Vertex, Normal)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Normal)));
 
     // texture attribute
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(offsetof(Vertex, TextureCoordinates)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, TextureCoordinates)));
 
     //unbind the buffer
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -178,19 +175,8 @@ int main()
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //storage variables for the uniform names
-    const std::string name1 = "projection";
-    const std::string name2 = "view";
-    const std::string name3 = "model";
-
-    //call prebegin play for all world objects
-    for (WorldObject* Object : WorldObjects)
-    {
-	    Object->BeginPlay(WorldObjects);
-	}
-
     // render loop
-    while (!glfwWindowShouldClose(Window))
+    while (!glfwWindowShouldClose(GameWindow))
     {
         // per-frame time logic (from https://learnopengl.com/Getting-started/Camera)
         // --------------------
@@ -198,8 +184,8 @@ int main()
         const double DeltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // input
-		processInput(Window, DeltaTime);
+        ////process keyboard input
+        //GameWorld.GetPlayerController()->ProcessKeyboardInput(Window, DeltaTime);
 
         //draw the background
         glClearColor(0.2f, 0.3f, 0.3f, 1);
@@ -210,83 +196,38 @@ int main()
         //clear the depth buffer
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(ShaderProgram);
         glBindVertexArray(VAO);
 
         //(modified)from https://learnopengl.com/Getting-started/Camera
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), Statics::WindowWidth / Statics::WindowHeight, 0.1f, Statics::CullingDistance);
-        glUniformMatrix4fv(glGetUniformLocation(ShaderProgram, name1.c_str()), 1, false, &projection[0][0]);
+        glm::mat4 projection = glm::perspective(glm::radians(GameWorld.GetPlayerCamera()->Zoom), WindowWidth / WindowHeight, 0.1f, CullingDistance);
+        glUniformMatrix4fv(glGetUniformLocation(SHADER_REF, PROJECTION_KEY_REF), 1, false, &projection[0][0]);
 
         // camera/view transformation
-        glm::mat4 View = camera.GetViewMatrix();
-        glUniformMatrix4fv(glGetUniformLocation(ShaderProgram,name2.c_str()), 1, false, &View[0][0]);
+        glm::mat4 View = GameWorld.GetPlayerCamera()->GetViewMatrix();
+        glUniformMatrix4fv(glGetUniformLocation(SHADER_REF,VIEW_KEY_REF), 1, false, &View[0][0]);
 
     	//model matrix
         glm::mat4 model = glm::mat4(1);
 
         //set the model matrix uniform
-        glUniformMatrix4fv(glGetUniformLocation(ShaderProgram, name3.c_str()), 1, false, &model[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(SHADER_REF, MODEL_KEY_REF), 1, false, &model[0][0]);
 
-        //do the update for this frame
-        for (WorldObject* Object : WorldObjects)
-	    {
-		    Object->Tick(DeltaTime);
-	    }
-
-        glCheckError();
-
-        //do the rendering for this frame
-	    for (WorldObject* Object : WorldObjects)
-	    {
-		    Object->Render(ShaderProgram, name3);
-		}
-
-        glCheckError();
+        //do the tick and rendering for this frame
+        GameWorld.UpdateWorld(static_cast<float>(DeltaTime));
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        glfwSwapBuffers(Window);
+        glfwSwapBuffers(GameWindow);
         glfwPollEvents();
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteProgram(ShaderProgram);
+    glDeleteProgram(SHADER_REF);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     glfwTerminate();
     return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow* window, const float InDeltaTime)
-{
-    //check if the escape key is pressed
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-
-    //process the input for the player
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		Player.ProcessInput(camera, FORWARD, InDeltaTime, WorldObjects);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		Player.ProcessInput(camera, BACKWARD, InDeltaTime, WorldObjects);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		Player.ProcessInput(camera, LEFT, InDeltaTime, WorldObjects);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		Player.ProcessInput(camera, RIGHT, InDeltaTime, WorldObjects);
-	}
-
-    //process the mouse movement to update the camera vectors
-	camera.ProcessMouseMovement(0, 0);
 }
 
 //called whenever the window is resized
@@ -300,30 +241,19 @@ void framebuffer_size_callback(GLFWwindow* window, const int width, const int he
 
 // glfw: whenever the mouse moves, this callback is called (from https://learnopengl.com/Getting-started/Camera)
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, const double xposIn, const double yposIn)
+void mouse_callback(GLFWwindow* window, const double XPos, const double YPos)
 {
-	const double Xpos = xposIn;
-    const double Ypos = yposIn;
+	GetWorld()->GetPlayerController()->ProcessMouseInput(float(XPos), float(YPos));
+}
 
-    if (camera.IsFirstMouse)
-    {
-        camera.LastX = Xpos;
-        camera.LastY = Ypos;
-        camera.IsFirstMouse = false;
-    }
-
-    const double Xoffset = Xpos - camera.LastX;
-    const double Yoffset = camera.LastY - Ypos; // reversed since y-coordinates go from bottom to top
-
-    camera.LastX = Xpos;
-    camera.LastY = Ypos;
-
-    Player.ProcessMouseMovement(camera, Xoffset, Yoffset, false);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	GetWorld()->GetPlayerController()->ProcessKeyboardInput(window, key, scancode, action, mods);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called (from https://learnopengl.com/Getting-started/Camera)
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, const double yoffset)
 {
-    camera.ProcessMouseScroll(yoffset);
+    GetWorld()->GetPlayerController()->ProcessMouseScroll(float(yoffset));
 }

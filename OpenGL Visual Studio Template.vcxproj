@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="BezierCurve.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="House.cpp" />
@@ -143,15 +144,20 @@
     <ClCompile Include="NPC.cpp" />
     <ClCompile Include="Pickup.cpp" />
     <ClCompile Include="PlayerCharacter.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="VertexWriter.cpp" />
     <ClCompile Include="WaveSurface.cpp" />
     <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="World.cpp" />
     <ClCompile Include="WorldObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Debugging.h" />
+    <ClInclude Include="BezierCurve.h" />
+    <ClInclude Include="Macros.h" />
     <ClInclude Include="GameplayStatics.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Libraries\include\glad\glad.h" />
@@ -443,15 +449,20 @@
     <ClInclude Include="NPC.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerCharacter.h" />
+    <ClInclude Include="PlayerController.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="VertexWriter.h" />
     <ClInclude Include="WaveSurface.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="World.h" />
     <ClInclude Include="WorldObject.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="FragmentShaderSource.shadersourcecode" />
     <None Include="Libraries\include\glm\detail\func_common.inl" />
     <None Include="Libraries\include\glm\detail\func_common_simd.inl" />

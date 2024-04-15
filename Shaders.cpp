@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "glad/glad.h"
+#include "WorldObject.h"
 
 std::string Shaders::GetVertexShader()
 {

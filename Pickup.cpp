@@ -1,33 +1,32 @@
 #include "Pickup.h"
 
 #include <ostream>
-#include <string>
 #include <glm/glm.hpp>
 
 #include "GameplayStatics.h"
+#include "Macros.h"
 #include "glm/gtx/transform.hpp"
 
-static int NumPickups = 0;
-
-Pickup::Pickup(const glm::vec3 InPos, const glm::vec3 InSize, std::string InTexturePath)
+Pickup_::Pickup_(const glm::vec3 InPos) : WorldObject(InPos, glm::vec3(1), CREATE_NAME)
 {
-	//set the position
-	Position = InPos;
-
-	//set the size
-	Size = InSize;
-
-	//set the name
-	Name = std::string("Pickup (worldindex: ").append(std::to_string(int(NumPickups))).append(")");
-
-	//increment the number of pickups
-	NumPickups++;
-
 	//set the texture paths
-	TexturePaths = {InTexturePath,InTexturePath,InTexturePath,InTexturePath,InTexturePath,InTexturePath};
+	TexturePaths = {"Textures/Pickup.png", "Textures/Pickup.png", "Textures/Pickup.png", "Textures/Pickup.png", "Textures/Pickup.png", "Textures/Pickup.png"};
 }
 
-void Pickup::Render(const unsigned int& InShaderProgram, const std::string& ModelKey)
+void Pickup_::BeginPlay()
+{
+	//get the y below
+	const float YBelow = GetYBelow();
+
+	//check if the y below is not 0.0000000001f
+	if (YBelow != 0.0000000001f)
+	{
+		//set our y position
+		this->Position.y = YBelow + 0.5f * Size.y;
+	}
+}
+
+void Pickup_::Render()
 {
 	//check if the pickup isn't active
 	if (!IsActive)
@@ -36,6 +35,6 @@ void Pickup::Render(const unsigned int& InShaderProgram, const std::string& Mode
 	}
 
 	//call the parent implementation
-	WorldObject::Render(InShaderProgram, ModelKey);
+	WorldObject::Render();
 
 }

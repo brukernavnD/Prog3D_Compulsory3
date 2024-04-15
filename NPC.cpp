@@ -2,122 +2,44 @@
 #include <ostream>
 
 #include "GameplayStatics.h"
+#include "Macros.h"
 
-Path::Path(const float InMovementSpeed, float(* InMathFunction)(float), const float InLength, const glm::vec3 InDirection): MovementSpeed(InMovementSpeed), MathFunction(InMathFunction), Length(InLength), Direction(InDirection)
+NPC_::NPC_(const glm::vec3 InPos, const glm::vec3 InSize, BezierCurve* InPath) : WorldObject(InPos, InSize, CREATE_NAME), Path(InPath)
 {
-		
-}
-
-NPC::NPC(const glm::vec3 InPos, const glm::vec3 InSize, std::string InTexturePath) : OriginalPosition(InPos)
-{
-	//set the position
-	Position = InPos;
-
-	//set the size
-	Size = InSize;
-
-	//set the name
-	Name = "NPC";
-
 	//set the texture paths
-	TexturePaths = {InTexturePath,InTexturePath,InTexturePath,InTexturePath,InTexturePath,InTexturePath};
+	TexturePaths = {"Textures/NPC.png", "Textures/NPC.png", "Textures/NPC.png", "Textures/NPC.png", "Textures/NPC.png", "Textures/NPC.png"};
 }
 
-float NPC::MathFunction1(const float Param)
+void NPC_::Tick(const float DeltaTime)
 {
-	//get the value
-	const float Value = 24.5210653286f * Param * Param -2.0635480065f * Param - 0.4835875541f;
-	return Value;
-}
+	//get the next point on the path
+	glm::vec3 NextPoint = Path->GetPointOnCurve(PathIndex).Position;
 
-float NPC::MathFunction2(const float Param)
-{
-    //get the value
-	const float Value = 0.5f * Param * Param - 0.5f * Param;
-	return Value;
-}
+	//adjust the y position of the next point
+	NextPoint.y += 0.5f * Size.y;
 
-void NPC::BeginPlay(const std::vector<WorldObject*>& InWorldObjects)
-{
-	//call the parent implementation
-	WorldObject::BeginPlay(InWorldObjects);
-
-	//update our original position
-	OriginalPosition = Position;
-}
-
-void NPC::Tick(const float DeltaTime)
-{
-	//check if we've reached the end of the path
-    CheckForPathEnd();
-
-	//move the npc towards the goal
-	MoveTowardsGoal(DeltaTime);
-}
-
-void NPC::MoveTowardsGoal(const float DeltaTime)
-{
-	//get the direction to the goal
-	const glm::vec3 Direction = GetEndOfPath() - Position;
-
-	//normalize the direction
-	const glm::vec3 NormalizedDirection = normalize(Direction);
-
-	//move the npc towards the goal
-	Position += NormalizedDirection * DeltaTime * GetCurrentMovementSpeed();
-}
-
-void NPC::SwitchPath(Path* NewPathPtr)
-{
-    //check if the path is the same as the one we are switching to
-    if (CurrentPathPtr == NewPathPtr)
-    {
-	    //if it is, return
-		return;
-	}
-
-	//switch the path
-	CurrentPathPtr = NewPathPtr;
-
-    //reset the path progress direction
-    PathProgressDirection = 1;
-}
-
-void NPC::CheckForPathEnd()
-{
-    //the minimum distance away from the end of the path before we switch paths
-    constexpr float MinDistance = 0.1f;
-
-	//get the distance between the npc and the end of the path
-	const float Distance = distance(Position, GetEndOfPath());
-
-	//check if either distance is less than the minimum distance
-	if (Distance < MinDistance)
+	//if the distance between the next point and the current position is less than the speed
+	if (distance(NextPoint, Position) < Speed * DeltaTime)
 	{
-		//reverse the direction of the path progress
-		PathProgressDirection *= -1;
-	}
-}
+		//increment/decrement the path index
+		PathIndex += PathDirection;
 
-glm::vec3 NPC::GetEndOfPath() const
-{
-	//check if the path progress direction is positive
-	if (PathProgressDirection > 0)
+		//check if the path index is greater than the number of points on the path
+		if (PathIndex >= Path->Vertices.size() - 1)
+		{
+			//reverse the path direction
+			PathDirection = -1;
+		}
+		//check if the path index is less than 0
+		else if (PathIndex <= 0)
+		{
+			//reverse the path direction
+			PathDirection = 1;
+		}
+	}
+	else
 	{
-		//return the end of the current path
-		return {OriginalPosition.x + CurrentPathPtr->Direction.x * CurrentPathPtr->MathFunction(CurrentPathPtr->Length), OriginalPosition.y + CurrentPathPtr->Direction.y * CurrentPathPtr->MathFunction(CurrentPathPtr->Length), OriginalPosition.z + CurrentPathPtr->Direction.z * CurrentPathPtr->MathFunction(CurrentPathPtr->Length)};
+		//move towards the next point
+		Position += normalize(NextPoint - Position) * Speed * DeltaTime;
 	}
-	if (PathProgressDirection < 0)
-	{
-		//return the beginning of the current path
-		return {OriginalPosition.x + CurrentPathPtr->Direction.x * CurrentPathPtr->MathFunction(0), OriginalPosition.y + CurrentPathPtr->Direction.y * CurrentPathPtr->MathFunction(0), OriginalPosition.z + CurrentPathPtr->Direction.z * CurrentPathPtr->MathFunction(0)};
-	}
-
-	//return zero vector
-	return {0.0f, 0.0f, 0.0f};
-}
-
-float NPC::GetCurrentMovementSpeed() const
-{
-	return CurrentPathPtr->MovementSpeed;
 }
